@@ -20,7 +20,10 @@ namespace cfr_algorithm
         int sampleRate = 50;
         double thresholdActivity = 4.2;
         int thresholdTime = 1;
-        
+
+        List<int> binStartPoints;
+        List<int> binEndPoints;
+
         public Form1()
         {
             InitializeComponent();
@@ -28,7 +31,10 @@ namespace cfr_algorithm
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+            binStartPoints = new List<int>(10);
+            binEndPoints = new List<int>(10);
+
+            output_label.Text = "Press Load Data to load a raw data file";
         }
 
         // GUI element callback functions
@@ -45,6 +51,10 @@ namespace cfr_algorithm
                     cfrParser = new cfr_parser(of.FileName, sampleRate, thresholdActivity, thresholdTime);
                     cfrParser.ReadRawData();
                     EnableAnalysis();
+
+                    output_label.Text = "Loaded file: " + Path.GetFileName(of.FileName) + "\n\n" +
+                        "You can now select your session and extraction method.\n" +
+                        "Press analyze data button when ready";
                 }
                 catch(Exception formException)
                 {
@@ -55,24 +65,51 @@ namespace cfr_algorithm
         }
         private void analyse_data_Click(object sender, EventArgs e)
         {
-            ProgressBar.Value = 0;
-            cfrParser.progressBar = ProgressBar;
-
             try
             {
                 if (checkInterval.Checked)
-                    cfrParser.ParseInterval((int)FirstSession.Value, (int)LastSession.Value, (int)IntervalRange.Value);
+                {
+                    output_label.Text = "Analyzing...";
+                    cfrParser.ParseFullSession((int)FirstSession.Value, (int)LastSession.Value, (int)interval_range.Value);
+                }
                 else
-                    cfrParser.ParsePeriod((int)FirstSession.Value, (int)LastSession.Value, (int)StartPeriod.Value, (int)EndPeriod.Value);
+                {
+                    if (binStartPoints.Count == 0)
+                    {
+                        output_label.Text = "Please specify at least one interval.";
+                        return;
+                    }
+
+                    cfrParser.ParseSelectedIntervals((int)FirstSession.Value, (int)LastSession.Value, binStartPoints, binEndPoints);
+                }
+
+                output_label.Text += "Done!\n";
+                output_label.Text += "Saving to excel...";
                 WriteExcel();
-                ProgressBar.Value = ProgressBar.Maximum;
+                output_label.Text = "Done. You can now select another file.";
+                
             }
             catch (Exception E)
             {
                 MessageBox.Show(E.Message);
             }
         }
+        private void add_interval_button_Click(object sender, EventArgs e)
+        {
+            binStartPoints.Add((int)start_interval_time.Value);
+            binEndPoints.Add((int)stop_interval_time.Value);
 
+            interval_listbox.Items.Add("From " + start_interval_time.Value.ToString() + " to " + stop_interval_time.Value.ToString() + " seconds");
+        }
+        private void remove_interval_button_Click(object sender, EventArgs e)
+        {
+            if (interval_listbox.SelectedIndex >= 0)
+            {
+                binStartPoints.RemoveAt(interval_listbox.SelectedIndex);
+                binEndPoints.RemoveAt(interval_listbox.SelectedIndex);
+                interval_listbox.Items.RemoveAt(interval_listbox.SelectedIndex);
+            }
+        }
         // GUI manipulator functions
         void EnableAnalysis()
         {
@@ -84,19 +121,19 @@ namespace cfr_algorithm
             LastSession.Maximum = cfrParser.sessionCount;
             LastSession.Value = LastSession.Maximum;
 
-            analyse_data.Enabled = true;
+            analyse_data_button.Enabled = true;
         }
 
         void DisableAnalysis()
         {
-            analyse_data.Enabled = false;
+            analyse_data_button.Enabled = false;
         }
 
         void WriteExcel()
         {
             SaveFileDialog sf = new SaveFileDialog();
             sf.Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*";
-            sf.FileName = cfrParser.filename;
+            sf.FileName = Path.GetFileNameWithoutExtension(cfrParser.filename) + ".xlsx";
             sf.RestoreDirectory = true;
             sf.Title = "To which file do you want to save?";
             if (sf.ShowDialog() == DialogResult.OK)
@@ -129,10 +166,7 @@ namespace cfr_algorithm
             }
         }
 
-        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
 
-        }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -153,6 +187,21 @@ namespace cfr_algorithm
                 }
             }
         }
+
+        private void stop_interval_time_ValueChanged(object sender, EventArgs e)
+        {
+            if (stop_interval_time.Value <= start_interval_time.Value)
+                stop_interval_time.Value = start_interval_time.Value + 1;
+        }
+
+        private void start_interval_time_ValueChanged(object sender, EventArgs e)
+        {
+            if (start_interval_time.Value >= stop_interval_time.Value)
+                start_interval_time.Value = stop_interval_time.Value - 1;
+        }
+
+        
+
         
         
     }

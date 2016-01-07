@@ -8,27 +8,24 @@ namespace cfr_algorithm
 {
     class cfr_parser
     {
-        // Data variables
-        int sampleRate;
-        public int sessionCount;
-
+        // Data parameters
         byte[] byteData;
         int byteCount;
         public string filename;
 
+        // Codon data
+        public int sessionCount;
         List<int> startPositions;
         List<int> stopPositions;
-        List<List<double>> activityData;
+        List<List<double>> sessionActivityMatrix;
 
-        // Extraction variables
-        int firstSession, lastSession, TTR;
+        // Extraction parameters
+        bool extractFull = false;
+        int firstSession, lastSession, TTR, sampleRate;
         double activityThreshold;
-
-        List<int> intervalPoints;
-        int nIntervals;
+        List<int> binLocations;
         public DataTable exportData;
 
-        public System.Windows.Forms.ProgressBar progressBar;
 
         /* Object constructor
          * set default values for sampling rate, activity threshold and TTR
@@ -83,7 +80,7 @@ namespace cfr_algorithm
         }
         private void ConvertToActivity()
         {
-            activityData = new List<List<double>>(sessionCount);
+            sessionActivityMatrix = new List<List<double>>(sessionCount);
 
             int sessionLength;
             double convertedValue;
@@ -100,123 +97,132 @@ namespace cfr_algorithm
                     convertedValue = System.Math.Abs(convertedValue - 0.5) * 200.0;
                     currentSessionValues.Add(convertedValue);
                 }
-                activityData.Add(currentSessionValues);
+                sessionActivityMatrix.Add(currentSessionValues);
             }
         }
 
-        // Data manipulation functions: used to extract freezing data
-        public void ParsePeriod(int firstSession, int lastSession, int startTime, int stopTime)
+        // ParseSelectedIntervals: for each session in the range firsSession-lastSession
+        // look at the time interval startTime-stopTime and calculate the percentage freezing in that interval
+        public void ParseSelectedIntervals(int firstSession, int lastSession, List<int> startTime, List<int> stopTime)
         {
-            // Calculates freezing within a specific time window for all specified sessions
             this.firstSession = firstSession-1;
             this.lastSession = lastSession-1;
-            intervalPoints = new List<int>(2);
+            binLocations = new List<int>(2*startTime.Count);
 
-            intervalPoints.Add(sampleRate * startTime);
-            intervalPoints.Add(sampleRate * stopTime);
-            nIntervals = 2;
+            for (int i = 0; i < startTime.Count; ++i)
+            {
+                binLocations.Add(sampleRate * startTime[i]);
+                binLocations.Add(sampleRate * stopTime[i]);
+            }
+            extractFull = false;
 
             PrepareOutputTable();
-            CalculateFreezing();
+            ParseActivityMatrix();
         }
 
-        public void ParseInterval(int firstSession, int lastSession, int interval)
+        // ParseFullSession: for each session in the range firstSession-lastSession
+        // construct time bins with size equal to interval and calculate the percentage
+        // of freezing within each bin
+        public void ParseFullSession(int firstSession, int lastSession, int timeInterval)
         {
             this.firstSession = firstSession - 1;
             this.lastSession = lastSession - 1;
 
-            // Calculate the maximum number of samples per session
+            // Get the upper limit of samples per session
             int maxSessionSamples = 0;
             for (int i = this.firstSession; i <= this.lastSession; ++i)
             {
-                if (maxSessionSamples < activityData[i].Count)
-                    maxSessionSamples = activityData[i].Count;
+                if (maxSessionSamples < sessionActivityMatrix[i].Count)
+                    maxSessionSamples = sessionActivityMatrix[i].Count;
             }
 
-            // Use the maximum number of samples to calculate all the intervals
-            int samplesPerInterval = interval * sampleRate;
-            nIntervals = (int)Math.Ceiling(maxSessionSamples / (double)samplesPerInterval);
-
-            // Calculate the interval points
-            intervalPoints = new List<int>(nIntervals+1);
-            for (int intervalIndex = 0; intervalIndex <= nIntervals; ++intervalIndex)
-                intervalPoints.Add(intervalIndex * samplesPerInterval);
+            // Use the maximum number of samples to construct the time bins in which to look
+            int binSize = timeInterval * sampleRate;
+            int nBins = (int)Math.Ceiling(maxSessionSamples / (double)binSize);
+            binLocations = new List<int>(nBins+1);
+            for (int locationIndex = 0; locationIndex < nBins; ++locationIndex)
+                binLocations.Add(locationIndex * binSize);
+            binLocations.Add(maxSessionSamples);
+            extractFull = true;
 
             PrepareOutputTable();
-            CalculateFreezing();
+            ParseActivityMatrix();
         }
 
-        private void CalculateFreezing()
+        // ParseActivityMatrix: for each session within range, convert activity to freezing
+        // values (vector with value 1 if the animal is freezing, 0 otherwise
+        private void ParseActivityMatrix()
         {
-            int[] freezeVector;
-            bool maxInterval;
+            int[] sessionFreezeVector;
+            bool sessionParsed;
             DataRow currentRow;
+
+            int indexIncrement = 1;
+            if (extractFull == false)
+                indexIncrement = 2;
 
             for (int sessionIndex = firstSession; sessionIndex <= lastSession; ++sessionIndex)
             {
-                freezeVector = CalculateSessionFreezing(sessionIndex);
-                maxInterval = false;
+                sessionFreezeVector = CalculateFreezeVector(sessionIndex);
+                sessionParsed = false;
 
                 currentRow = exportData.NewRow();
                 currentRow[0] = sessionIndex + 1;
-                currentRow[1] = freezeVector.Length / (double)sampleRate;
+                currentRow[1] = sessionFreezeVector.Length / (double)sampleRate;
                 currentRow[2] = activityThreshold;
                 currentRow[3] = TTR;
 
-                for (int intervalIndex = 0; (intervalIndex < nIntervals-1) && (maxInterval == false); ++intervalIndex)
+                int columnIndex = 0;
+                for (int binIndex = 0; (binIndex < (binLocations.Count-1)) && (sessionParsed == false); binIndex += indexIncrement)
                 {
-                    int intervalStart = intervalPoints[intervalIndex];
-                    int intervalEnd = intervalPoints[intervalIndex + 1]-1;
-                    if (intervalEnd >= freezeVector.Length - 1)
+                    int binStart = binLocations[binIndex];
+                    int binStop = binLocations[binIndex + 1]-1;
+                    if (binStop >= sessionFreezeVector.Length - 1)
                     {
-                        intervalEnd = freezeVector.Length - 1;
-                        maxInterval = true;
+                        binStop = sessionFreezeVector.Length - 1;
+                        sessionParsed = true;
                     }
-                    currentRow[4 + intervalIndex] = CalculateAverage(freezeVector, intervalStart, intervalEnd);
+                    currentRow[4 + columnIndex] = Mean(sessionFreezeVector, binStart, binStop);
+                    columnIndex += 1;
                 }
                 exportData.Rows.Add(currentRow);
-
-
-                if (progressBar != null)
-                    progressBar.Value = Math.Min((100 * (sessionIndex - firstSession+1) / (lastSession - firstSession + 1)),95);
             }
         }
 
-        /* Converts activity values into freezing values. Freezing is detected when the activity
-         * is below activityThreshold for duration TTR
-        */
-        private int[] CalculateSessionFreezing(int sessionIndex)
+        // CalculateFreezeVector: converts the activity values into a binary vector.
+        // The algorithm looks for sequences of activity values that are below the activity threshold.
+        // If a given sequence takes longer than the time to threshold these activity values are coded as 1
+        private int[] CalculateFreezeVector(int sessionIndex)
         {
-            // Returns a binary vector, 0 if the animal is not freezing, one if the animal is freezing
-            int sessionSamples = activityData[sessionIndex].Count;
-            int[] output = new int[sessionSamples];
+            int sampleCount = sessionActivityMatrix[sessionIndex].Count;
+            int[] freezeVector = new int[sampleCount];
 
             int sampleIndex = 0,freezeStart = 0;
-            while (sampleIndex < sessionSamples)
+            while (sampleIndex < sampleCount)
             {
-                if (activityData[sessionIndex][sampleIndex] > activityThreshold)
+                if (sessionActivityMatrix[sessionIndex][sampleIndex] > activityThreshold)
                 {
-                    output[sampleIndex] = 0;
+                    freezeVector[sampleIndex] = 0;
                     ++sampleIndex;
                 }
                 else
                 {
                     freezeStart = sampleIndex;
-                    while ((sampleIndex < sessionSamples) && activityData[sessionIndex][sampleIndex] < activityThreshold)
+                    while ((sampleIndex < sampleCount) && sessionActivityMatrix[sessionIndex][sampleIndex] < activityThreshold)
                     {
-                        output[sampleIndex] = 0;
+                        freezeVector[sampleIndex] = 0;
                         ++sampleIndex;
                     }
                     if ((sampleIndex - freezeStart + 1) > TTR)
                     {
                         for (int i = freezeStart; i < sampleIndex; ++i)
-                            output[i] = 1;
+                            freezeVector[i] = 1;
                     }
                 }
             }
-            return output;
+            return freezeVector;
         }
-        private double CalculateAverage(int[] inputVector, int startIndex, int stopIndex)
+        private double Mean(int[] inputVector, int startIndex, int stopIndex)
         {
             double output = 0.0;
             for (int i = startIndex; i <= stopIndex; ++i)
@@ -232,11 +238,16 @@ namespace cfr_algorithm
             exportData.Columns.Add("Session duration [s]", typeof(double));
             exportData.Columns.Add("Threshold activity [%]", typeof(double));
             exportData.Columns.Add("Threshold samples", typeof(double));
-            for (int intervalIndex = 0; intervalIndex < (nIntervals-1); ++intervalIndex)
+
+            int indexIncrement = 1;
+            if (extractFull == false)
+                indexIncrement = 2;
+
+            for (int binIndex = 0; binIndex < (binLocations.Count-1); binIndex += indexIncrement)
             {
-                double intervalStart = intervalPoints[intervalIndex] / sampleRate;
-                double intervalStop = intervalPoints[intervalIndex+1] / sampleRate;
-                string sInterval = intervalStart.ToString("F1") + " <= t < " + intervalStop.ToString("F1");
+                double intervalStart = binLocations[binIndex] / (double)sampleRate;
+                double intervalStop = binLocations[binIndex + 1] / (double)sampleRate;
+                string sInterval = intervalStart.ToString("F2") + " <= t < " + intervalStop.ToString("F2");
                 exportData.Columns.Add(sInterval, typeof(double));
             }
         }

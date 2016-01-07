@@ -8,3 +8,14 @@ C:\Users\Christophe\Documents\Visual Studio 2012\Projects\cfr_algorithm\cfr_algo
 C:\Users\Christophe\Documents\Visual Studio 2012\Projects\cfr_algorithm\cfr_algorithm\cfr_algorithm\obj\Debug\cfr_algorithm.exe
 C:\Users\Christophe\Documents\Visual Studio 2012\Projects\cfr_algorithm\cfr_algorithm\cfr_algorithm\obj\Debug\cfr_algorithm.pdb
 C:\Users\Christophe\Documents\Visual Studio 2012\Projects\cfr_algorithm\cfr_algorithm\cfr_algorithm\obj\Debug\cfr_algorithm.csproj.ResolveComReference.cache
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\bin\Debug\cfr_algorithm.exe.config
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.csproj.ResolveComReference.cache
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.exe
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.pdb
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\bin\Debug\cfr_algorithm.exe
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\bin\Debug\cfr_algorithm.pdb
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.csprojResolveAssemblyReference.cache
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.Form1.resources
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.Properties.Resources.resources
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.thresholdParameters.resources
+C:\Users\Christophe\Documents\GitHub\CFR\cfr_algorithm\obj\Debug\cfr_algorithm.csproj.GenerateResource.Cache
