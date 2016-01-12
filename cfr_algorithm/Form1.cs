@@ -15,12 +15,10 @@ namespace cfr_algorithm
     {
         // Data objects
         ExcelExport excelExporter;
-        cfr_parser cfrParser;
+        DataParser cfrParser;
+        DataPlot dataPlot;
 
-        int sampleRate = 50;
-        double thresholdActivity = 4.2;
-        int thresholdTime = 1;
-
+        // List to store interval points that need to be extracted
         List<int> binStartPoints;
         List<int> binEndPoints;
 
@@ -35,6 +33,11 @@ namespace cfr_algorithm
             binEndPoints = new List<int>(10);
 
             output_label.Text = "Press Load Data to load a raw data file";
+
+            cfrParser = new DataParser();
+
+            dataPlot = new DataPlot();
+            dataPlot.SetDataParser(cfrParser);
         }
 
         // GUI element callback functions
@@ -48,10 +51,10 @@ namespace cfr_algorithm
             {
                 try
                 {
-                    cfrParser = new cfr_parser(of.FileName, sampleRate, thresholdActivity, thresholdTime);
-                    cfrParser.ReadRawData();
+                    cfrParser.ReadRawData(of.FileName);
                     EnableAnalysis();
-
+                    dataPlot.SetMaxSession(cfrParser.sessionCount);
+                    dataPlot.SetCurrentSession(1);
                     output_label.Text = "Loaded file: " + Path.GetFileName(of.FileName) + "\n\n" +
                         "You can now select your session and extraction method.\n" +
                         "Press analyze data button when ready";
@@ -110,6 +113,8 @@ namespace cfr_algorithm
                 interval_listbox.Items.RemoveAt(interval_listbox.SelectedIndex);
             }
         }
+        
+        
         // GUI manipulator functions
         void EnableAnalysis()
         {
@@ -123,7 +128,6 @@ namespace cfr_algorithm
 
             analyse_data_button.Enabled = true;
         }
-
         void DisableAnalysis()
         {
             analyse_data_button.Enabled = false;
@@ -148,7 +152,7 @@ namespace cfr_algorithm
                     }
                     catch (IOException)
                     {
-                        MessageBox.Show("Cannot write to file. Is it already open in Excel?");
+                        MessageBox.Show("Cannot write to file. If the file is open in Excel, please close it and try to save again.");
                         return;
                     }
                 }
@@ -168,41 +172,51 @@ namespace cfr_algorithm
 
 
 
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            string aboutString = "CFR Analysis program\n" +
-                "Created by Christophe Bossens\n";
-            MessageBox.Show(aboutString, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private void thresholdParametersToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            using (var tp = new thresholdParameters(thresholdActivity,thresholdTime))
-            {
-                DialogResult dr = tp.ShowDialog();
-                if (dr == DialogResult.OK)
-                {
-                    thresholdActivity = tp.thresholdActivity;
-                    thresholdTime = (int)tp.thresholdTime;
-                }
-            }
-        }
-
         private void stop_interval_time_ValueChanged(object sender, EventArgs e)
         {
             if (stop_interval_time.Value <= start_interval_time.Value)
                 stop_interval_time.Value = start_interval_time.Value + 1;
         }
-
         private void start_interval_time_ValueChanged(object sender, EventArgs e)
         {
             if (start_interval_time.Value >= stop_interval_time.Value)
                 start_interval_time.Value = stop_interval_time.Value - 1;
         }
 
-        
+        // Menu items callback functions
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string aboutString = "CFR Analysis program\n" +
+                "Created by Christophe Bossens\n";
+            MessageBox.Show(aboutString, "About", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        private void thresholdParametersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            using (var tp = new thresholdParameters(cfrParser.activityThreshold, cfrParser.timeToThreshold))
+            {
+                DialogResult dr = tp.ShowDialog();
+                if (dr == DialogResult.OK)
+                {
+                    cfrParser.activityThreshold = tp.thresholdActivity;
+                    cfrParser.timeToThreshold = tp.thresholdTime;
+                }
+            }
+        }
+        private void plotSessionDataToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem menuItem = (ToolStripMenuItem)sender;
 
-        
-        
+            if (menuItem.Checked)
+            {
+                dataPlot.Hide();
+                menuItem.Checked = false;
+            }
+            else
+            {
+                menuItem.Checked = true;
+                dataPlot.Show();
+            }
+        }
+
     }
 }

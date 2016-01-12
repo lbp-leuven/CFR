@@ -41,6 +41,9 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.remove_interval_button = new System.Windows.Forms.Button();
+            this.add_interval_button = new System.Windows.Forms.Button();
+            this.interval_listbox = new System.Windows.Forms.ListBox();
             this.checkPeriod = new System.Windows.Forms.RadioButton();
             this.checkInterval = new System.Windows.Forms.RadioButton();
             this.label10 = new System.Windows.Forms.Label();
@@ -51,9 +54,7 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.output_label = new System.Windows.Forms.Label();
-            this.interval_listbox = new System.Windows.Forms.ListBox();
-            this.add_interval_button = new System.Windows.Forms.Button();
-            this.remove_interval_button = new System.Windows.Forms.Button();
+            this.plotSessionDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.FirstSession)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.LastSession)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.start_interval_time)).BeginInit();
@@ -101,6 +102,11 @@
             // start_interval_time
             // 
             this.start_interval_time.Location = new System.Drawing.Point(137, 49);
+            this.start_interval_time.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
             this.start_interval_time.Name = "start_interval_time";
             this.start_interval_time.Size = new System.Drawing.Size(61, 21);
             this.start_interval_time.TabIndex = 7;
@@ -109,6 +115,11 @@
             // stop_interval_time
             // 
             this.stop_interval_time.Location = new System.Drawing.Point(226, 49);
+            this.stop_interval_time.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
             this.stop_interval_time.Minimum = new decimal(new int[] {
             1,
             0,
@@ -127,6 +138,11 @@
             // interval_range
             // 
             this.interval_range.Location = new System.Drawing.Point(137, 22);
+            this.interval_range.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
             this.interval_range.Name = "interval_range";
             this.interval_range.Size = new System.Drawing.Size(61, 21);
             this.interval_range.TabIndex = 10;
@@ -201,6 +217,37 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Choose extraction method";
             // 
+            // remove_interval_button
+            // 
+            this.remove_interval_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.remove_interval_button.Location = new System.Drawing.Point(328, 73);
+            this.remove_interval_button.Name = "remove_interval_button";
+            this.remove_interval_button.Size = new System.Drawing.Size(24, 27);
+            this.remove_interval_button.TabIndex = 18;
+            this.remove_interval_button.Text = "-";
+            this.remove_interval_button.UseVisualStyleBackColor = true;
+            this.remove_interval_button.Click += new System.EventHandler(this.remove_interval_button_Click);
+            // 
+            // add_interval_button
+            // 
+            this.add_interval_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
+            this.add_interval_button.Location = new System.Drawing.Point(298, 73);
+            this.add_interval_button.Name = "add_interval_button";
+            this.add_interval_button.Size = new System.Drawing.Size(24, 27);
+            this.add_interval_button.TabIndex = 17;
+            this.add_interval_button.Text = "+";
+            this.add_interval_button.UseVisualStyleBackColor = true;
+            this.add_interval_button.Click += new System.EventHandler(this.add_interval_button_Click);
+            // 
+            // interval_listbox
+            // 
+            this.interval_listbox.FormattingEnabled = true;
+            this.interval_listbox.ItemHeight = 15;
+            this.interval_listbox.Location = new System.Drawing.Point(137, 101);
+            this.interval_listbox.Name = "interval_listbox";
+            this.interval_listbox.Size = new System.Drawing.Size(215, 94);
+            this.interval_listbox.TabIndex = 16;
+            // 
             // checkPeriod
             // 
             this.checkPeriod.AutoSize = true;
@@ -255,7 +302,8 @@
             // optionToolStripMenuItem
             // 
             this.optionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.thresholdParametersToolStripMenuItem});
+            this.thresholdParametersToolStripMenuItem,
+            this.plotSessionDataToolStripMenuItem});
             this.optionToolStripMenuItem.Name = "optionToolStripMenuItem";
             this.optionToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.optionToolStripMenuItem.Text = "&Options";
@@ -292,36 +340,12 @@
             this.output_label.Size = new System.Drawing.Size(365, 100);
             this.output_label.TabIndex = 24;
             // 
-            // interval_listbox
+            // plotSessionDataToolStripMenuItem
             // 
-            this.interval_listbox.FormattingEnabled = true;
-            this.interval_listbox.ItemHeight = 15;
-            this.interval_listbox.Location = new System.Drawing.Point(137, 101);
-            this.interval_listbox.Name = "interval_listbox";
-            this.interval_listbox.Size = new System.Drawing.Size(215, 94);
-            this.interval_listbox.TabIndex = 16;
-            // 
-            // add_interval_button
-            // 
-            this.add_interval_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-            this.add_interval_button.Location = new System.Drawing.Point(298, 73);
-            this.add_interval_button.Name = "add_interval_button";
-            this.add_interval_button.Size = new System.Drawing.Size(24, 27);
-            this.add_interval_button.TabIndex = 17;
-            this.add_interval_button.Text = "+";
-            this.add_interval_button.UseVisualStyleBackColor = true;
-            this.add_interval_button.Click += new System.EventHandler(this.add_interval_button_Click);
-            // 
-            // remove_interval_button
-            // 
-            this.remove_interval_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold);
-            this.remove_interval_button.Location = new System.Drawing.Point(328, 73);
-            this.remove_interval_button.Name = "remove_interval_button";
-            this.remove_interval_button.Size = new System.Drawing.Size(24, 27);
-            this.remove_interval_button.TabIndex = 18;
-            this.remove_interval_button.Text = "-";
-            this.remove_interval_button.UseVisualStyleBackColor = true;
-            this.remove_interval_button.Click += new System.EventHandler(this.remove_interval_button_Click);
+            this.plotSessionDataToolStripMenuItem.Name = "plotSessionDataToolStripMenuItem";
+            this.plotSessionDataToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.plotSessionDataToolStripMenuItem.Text = "Plot session data";
+            this.plotSessionDataToolStripMenuItem.Click += new System.EventHandler(this.plotSessionDataToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -383,6 +407,7 @@
         private System.Windows.Forms.Button remove_interval_button;
         private System.Windows.Forms.Button add_interval_button;
         private System.Windows.Forms.ListBox interval_listbox;
+        private System.Windows.Forms.ToolStripMenuItem plotSessionDataToolStripMenuItem;
     }
 }
 
