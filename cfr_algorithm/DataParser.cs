@@ -6,7 +6,7 @@ using System.Text;
 using System.IO;
 namespace cfr_algorithm
 {
-    class cfr_parser
+    public class DataParser
     {
         // Data parameters
         byte[] byteData;
@@ -21,28 +21,30 @@ namespace cfr_algorithm
 
         // Extraction parameters
         bool extractFull = false;
-        int firstSession, lastSession, TTR, sampleRate;
-        double activityThreshold;
+        int firstSession, lastSession, samplesToThreshold, sampleRate;
+        public double activityThreshold{get; set;}
+        public double timeToThreshold { get; set; }
         List<int> binLocations;
-        public DataTable exportData;
 
+
+        public DataTable exportData;
 
         /* Object constructor
          * set default values for sampling rate, activity threshold and TTR
         */ 
-        public cfr_parser(string f, int sampleRate, double activityThreshold, int TTR)
+        public DataParser()
         {
-            filename = f;
+            this.sampleRate = 50;
+            this.activityThreshold = 4.2;
+            this.timeToThreshold = 1.0;
 
-            this.sampleRate = sampleRate;
-            this.activityThreshold = activityThreshold;
-            this.TTR = TTR*sampleRate;
+            sessionActivityMatrix = new List<List<double>>();
         }
         
-
         // Raw data extraction functions
-        public int ReadRawData()
+        public int ReadRawData(string filename)
         {
+            this.filename = filename;
             using (BinaryReader br = new BinaryReader(File.Open(filename, FileMode.Open, FileAccess.Read)))
             {
                 byteCount = (int)br.BaseStream.Length;
@@ -170,7 +172,7 @@ namespace cfr_algorithm
                 currentRow[0] = sessionIndex + 1;
                 currentRow[1] = sessionFreezeVector.Length / (double)sampleRate;
                 currentRow[2] = activityThreshold;
-                currentRow[3] = TTR;
+                currentRow[3] = samplesToThreshold;
 
                 int columnIndex = 0;
                 for (int binIndex = 0; (binIndex < (binLocations.Count-1)) && (sessionParsed == false); binIndex += indexIncrement)
@@ -194,6 +196,8 @@ namespace cfr_algorithm
         // If a given sequence takes longer than the time to threshold these activity values are coded as 1
         private int[] CalculateFreezeVector(int sessionIndex)
         {
+            this.samplesToThreshold = (int)(timeToThreshold * sampleRate);
+
             int sampleCount = sessionActivityMatrix[sessionIndex].Count;
             int[] freezeVector = new int[sampleCount];
 
@@ -213,7 +217,7 @@ namespace cfr_algorithm
                         freezeVector[sampleIndex] = 0;
                         ++sampleIndex;
                     }
-                    if ((sampleIndex - freezeStart + 1) > TTR)
+                    if ((sampleIndex - freezeStart + 1) > samplesToThreshold)
                     {
                         for (int i = freezeStart; i < sampleIndex; ++i)
                             freezeVector[i] = 1;
@@ -229,7 +233,6 @@ namespace cfr_algorithm
                 output += inputVector[i];
             return (100.0 * output / (stopIndex - startIndex + 1));
         }
-
         private void PrepareOutputTable()
         {
             exportData = new DataTable();
@@ -250,6 +253,28 @@ namespace cfr_algorithm
                 string sInterval = intervalStart.ToString("F2") + " <= t < " + intervalStop.ToString("F2");
                 exportData.Columns.Add(sInterval, typeof(double));
             }
+        }
+
+        // Functions for extracting activity values for a single session
+        public int GetSessionActivityLength(int sessionIndex)
+        {
+            int length = 0;
+            if (sessionIndex >= 0 && sessionIndex < sessionActivityMatrix.Count)
+                length = sessionActivityMatrix[sessionIndex].Count;
+            return length;
+        }
+        public List<double> GetSessionActivityValues(int sessionIndex)
+        {
+            if (sessionIndex >= 0 && sessionIndex < sessionActivityMatrix.Count)
+                return sessionActivityMatrix[sessionIndex];
+            return null;
+        }
+        public double GetSessionDuration(int sessionIndex)
+        {
+            double sessionDuration = -1.0;
+            if (sessionIndex >= 0 && sessionIndex < sessionActivityMatrix.Count)
+                sessionDuration = Math.Round((double)sessionActivityMatrix[sessionIndex].Count / this.sampleRate,2);
+            return sessionDuration;
         }
     }
 }

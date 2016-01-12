@@ -26,6 +26,7 @@ namespace cfr_algorithm
         }
         private void cancel_button_Click(object sender, EventArgs e)
         {
+            this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
@@ -33,6 +34,7 @@ namespace cfr_algorithm
         {
             thresholdTime = Convert.ToDouble(threshold_time.Text);
             thresholdActivity = Convert.ToDouble(threshold_activity.Text);
+            this.DialogResult = DialogResult.OK;
             this.Close();
         }
 
