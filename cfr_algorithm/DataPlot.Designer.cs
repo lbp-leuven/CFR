@@ -28,8 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea5 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Series series5 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.data_chart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.plot_session_number = new System.Windows.Forms.NumericUpDown();
             this.horizontal_zoom_scroll = new System.Windows.Forms.HScrollBar();
@@ -44,22 +44,22 @@
             this.data_chart.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            chartArea5.AxisX.MajorGrid.Enabled = false;
-            chartArea5.AxisX.Minimum = 0D;
-            chartArea5.AxisX.Title = "Time (s)";
-            chartArea5.AxisY.Enabled = System.Windows.Forms.DataVisualization.Charting.AxisEnabled.False;
-            chartArea5.Name = "ChartArea1";
-            this.data_chart.ChartAreas.Add(chartArea5);
+            chartArea1.AxisX.MajorGrid.Enabled = false;
+            chartArea1.AxisX.Minimum = 0D;
+            chartArea1.AxisX.Title = "Time (s)";
+            chartArea1.AxisY.Enabled = System.Windows.Forms.DataVisualization.Charting.AxisEnabled.False;
+            chartArea1.Name = "ChartArea1";
+            this.data_chart.ChartAreas.Add(chartArea1);
             this.data_chart.Location = new System.Drawing.Point(2, 1);
             this.data_chart.Name = "data_chart";
-            series5.ChartArea = "ChartArea1";
-            series5.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
-            series5.IsVisibleInLegend = false;
-            series5.MarkerSize = 2;
-            series5.Name = "freezeData";
-            series5.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            series5.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
-            this.data_chart.Series.Add(series5);
+            series1.ChartArea = "ChartArea1";
+            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            series1.IsVisibleInLegend = false;
+            series1.MarkerSize = 2;
+            series1.Name = "freezeData";
+            series1.XValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
+            series1.YValueType = System.Windows.Forms.DataVisualization.Charting.ChartValueType.Double;
+            this.data_chart.Series.Add(series1);
             this.data_chart.Size = new System.Drawing.Size(433, 317);
             this.data_chart.TabIndex = 0;
             // 
@@ -104,6 +104,7 @@
             this.zoom_out.TabIndex = 4;
             this.zoom_out.Text = "-";
             this.zoom_out.UseVisualStyleBackColor = true;
+            this.zoom_out.Click += new System.EventHandler(this.zoom_out_Click);
             // 
             // DataPlot
             // 

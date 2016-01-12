@@ -21,6 +21,10 @@ namespace cfr_algorithm
         int previousSessionNumber;
         int maxSessions;
 
+        double axisMinimum;
+        double axisMaximum;
+        double axisOffset;
+
         public DataPlot()
         {
             InitializeComponent();
@@ -53,7 +57,7 @@ namespace cfr_algorithm
 
             previousSessionNumber = currentSessionNumber;
             plot_session_number.Value = currentSessionNumber;
-            Update();
+            UpdatePlot();
         }
         private void plot_session_number_ValueChanged(object sender, EventArgs e)
         {
@@ -66,10 +70,10 @@ namespace cfr_algorithm
             }
 
             previousSessionNumber = currentSessionNumber;
-            Update();
+            UpdatePlot();
         }
 
-        private void Update()
+        private void UpdatePlot()
         {
             sessionPoints = dataParser.GetSessionActivityLength(currentSessionNumber-1);
 
@@ -87,8 +91,15 @@ namespace cfr_algorithm
         }
         private void PlotActivity()
         {
+            axisMinimum = 0.0;
+            axisMaximum = sessionDuration;
+            axisOffset = 0.0;
+
+            horizontal_zoom_scroll.Value = 0;
+            horizontal_zoom_scroll.Maximum = 101;
+
             data_chart.ChartAreas[0].AxisX.Minimum = 0;
-            data_chart.ChartAreas[0].AxisX.Maximum = sessionDuration;
+            data_chart.ChartAreas[0].AxisX.Maximum = axisMaximum;
             data_chart.ChartAreas[0].AxisY.Minimum = 0;
             data_chart.ChartAreas[0].AxisY.Maximum = 100.0;
 
@@ -118,14 +129,33 @@ namespace cfr_algorithm
 
         private void zoom_in_Click(object sender, EventArgs e)
         {
-            data_chart.ChartAreas[0].AxisX.Maximum = sessionDuration / 2.0;
-            horizontal_zoom_scroll.LargeChange = (int)Math.Max(25.0, horizontal_zoom_scroll.LargeChange / 2.0);
+            axisMaximum /= 2.0;
+            data_chart.ChartAreas[0].AxisX.Maximum = axisMaximum;
+            horizontal_zoom_scroll.LargeChange = (int)(horizontal_zoom_scroll.LargeChange / 2.0);
             data_chart.Update();
         }
 
         private void horizontal_zoom_scroll_ValueChanged(object sender, EventArgs e)
         {
+            axisOffset = sessionDuration*((double)horizontal_zoom_scroll.Value/(horizontal_zoom_scroll.Maximum-horizontal_zoom_scroll.LargeChange));
+            UpdateAxisX();
+        }
 
+        private void UpdateAxisX()
+        {
+            data_chart.ChartAreas[0].AxisX.Minimum = axisOffset + axisMinimum;
+            data_chart.ChartAreas[0].AxisX.Maximum = axisOffset + axisMaximum;
+        }
+
+        private void zoom_out_Click(object sender, EventArgs e)
+        {
+            if ((axisMaximum * 2) <= sessionDuration)
+            {
+                axisMaximum *= 2;
+                horizontal_zoom_scroll.LargeChange = (int)(horizontal_zoom_scroll.LargeChange * 2.0);
+                axisOffset = sessionDuration * ((double)horizontal_zoom_scroll.Value / (horizontal_zoom_scroll.Maximum - horizontal_zoom_scroll.LargeChange));
+                UpdateAxisX();
+            }
         }
     }
 }
